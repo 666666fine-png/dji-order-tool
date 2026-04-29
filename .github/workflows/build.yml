@@ -10,20 +10,26 @@ jobs:
     runs-on: windows-latest
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.9'
       
       - run: pip install -r requirements.txt
-      - run: python -m playwright install chromium
       
-      - name: 打包成EXE
+      - name: 安装 Chromium 浏览器
         run: |
-          $pp = python -c "import playwright,os;print(os.path.dirname(playwright.__file__))"
-          $bp = Get-ChildItem "$pp\driver\package\.local-browsers\chromium-*\chrome-win" | Select -First 1
-          pyinstaller --onefile --name "DJI下单工具" --add-data "$bp;playwright\driver\chrome-win" --hidden-import playwright --hidden-import playwright.sync_api dji_order.py
+          python -m playwright install chromium
+          python -m playwright install-deps
+      
+      - name: 找到浏览器路径并打包
+        run: |
+          $browserPath = python -c "from playwright.sync_api import sync_playwright; p = sync_playwright().start(); print(p.chromium.executable_path); p.stop()"
+          Write-Host "浏览器路径: $browserPath"
+          $browserDir = Split-Path $browserPath -Parent
+          pyinstaller --onefile --name "DJI下单工具" --add-data "$browserDir;playwright/driver/chrome-win" --hidden-import playwright --hidden-import playwright.sync_api dji_order.py
+        shell: powershell
       
       - uses: actions/upload-artifact@v4
         with:
