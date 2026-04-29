@@ -1,0 +1,31 @@
+name: 打包DJI下单工具
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - run: pip install -r requirements.txt
+      - run: python -m playwright install chromium
+      
+      - name: 打包成EXE
+        run: |
+          $pp = python -c "import playwright,os;print(os.path.dirname(playwright.__file__))"
+          $bp = Get-ChildItem "$pp\driver\package\.local-browsers\chromium-*\chrome-win" | Select -First 1
+          pyinstaller --onefile --name "DJI下单工具" --add-data "$bp;playwright\driver\chrome-win" --hidden-import playwright --hidden-import playwright.sync_api dji_order.py
+      
+      - uses: actions/upload-artifact@v3
+        with:
+          name: DJI下单工具-Windows版
+          path: dist/DJI下单工具.exe
