@@ -25,7 +25,7 @@ jobs:
           $bp = Get-ChildItem "$pp\driver\package\.local-browsers\chromium-*\chrome-win" | Select -First 1
           pyinstaller --onefile --name "DJI下单工具" --add-data "$bp;playwright\driver\chrome-win" --hidden-import playwright --hidden-import playwright.sync_api dji_order.py
       
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: DJI下单工具-Windows版
           path: dist/DJI下单工具.exe
